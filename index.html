@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <!-- Optimalisatie voor mobiele weergave op iPhone -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rekentools Accu’s & Zonnepanelen</title>
+  <style>
+    /* iOS-look styling */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f2f2f7;
+      margin: 0;
+      padding: 20px;
+      color: #1c1c1e;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #007aff;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #8e8e93;
+      margin-bottom: 20px;
+    }
+    fieldset {
+      border: 1px solid #c7c7cc;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      padding: 15px;
+      background-color: #fff;
+    }
+    legend {
+      font-size: 18px;
+      font-weight: bold;
+      color: #007aff;
+      padding: 0 5px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-size: 16px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #c7c7cc;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    small {
+      display: block;
+      font-size: 12px;
+      color: #8e8e93;
+      margin-top: 3px;
+    }
+    .result {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 18px;
+    }
+    .save-section {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      margin-top: 15px;
+      background-color: #007aff;
+      color: white;
+      cursor: pointer;
+    }
+    button:active {
+      background-color: #0051a8;
+    }
+    button.link-button {
+      background-color: #34c759;
+      margin-top: 5px;
+    }
+    button.link-button:active {
+      background-color: #28a745;
+    }
+  </style>
+</head>
+<body>
+  <h1>Rekentools</h1>
+  <div class="subtitle">Alle berekeningen gebeuren op basis van de prijs exclusief btw</div>
+  
+  <!-- ACCU CALCULATOR -->
+  <fieldset>
+    <legend>Accu Calculator</legend>
+    <label>
+      Prijs incl. btw (EUR):
+      <input type="number" id="accu_price" step="0.01" min="0" oninput="calculateAccu(); checkAccuSaveButton();">
+    </label>
+    <label>
+      Btw (%):
+      <input type="number" id="accu_vat" step="0.1" min="0" value="21" oninput="calculateAccu(); checkAccuSaveButton();">
+      <small>Geef 0 op als de site alleen de prijs exclusief btw vermeldt</small>
+    </label>
+    <label>
+      Aantal accu's:
+      <input type="number" id="accu_count" step="1" min="1" value="1" oninput="calculateAccu();">
+    </label>
+    <label>
+      Spanning (Volt):
+      <input type="number" id="accu_voltage" step="0.1" min="0" oninput="calculateAccu();">
+    </label>
+    <label>
+      Capaciteit (Ah):
+      <input type="number" id="accu_capacity" step="0.1" min="0" oninput="calculateAccu();">
+    </label>
+    <label>
+      Energie per accu (kWh) (optioneel):
+      <input type="number" id="accu_energyKwh" step="0.01" min="0" oninput="calculateAccu();">
+    </label>
+    <label>
+      Gewicht per accu (kg) (optioneel):
+      <input type="number" id="accu_weight" step="0.1" min="0" oninput="calculateAccu();">
+    </label>
+    <label>
+      Prijsverschil laden/terugleveren (€/kWh):
+      <input type="number" id="accu_priceDiff" step="0.01" min="0" value="0.10" oninput="calculateAccu();">
+    </label>
+    <label>
+      Round Trip Efficiency (%):
+      <input type="number" id="accu_roundTrip" step="0.1" min="0" max="100" value="70" oninput="calculateAccu();">
+    </label>
+    
+    <!-- Resultaten Accu -->
+    <div class="result" id="accu_totalEnergy">Totaal energie: 0,00 kWh</div>
+    <div class="result" id="accu_result">Prijs per kWh: €0,00</div>
+    <div class="result" id="accu_totalWeight">Totaal gewicht: 0,00 kg</div>
+    <div class="result" id="accu_priceExVat">Prijs ex btw: €0,00</div>
+    <div class="result" id="accu_vatAmount">Btw-bedrag: €0,00</div>
+    <div class="result" id="accu_profitPerCycle">Verdient per cycle: €0,00</div>
+    <div class="result" id="accu_cyclesToBreakEven">Benodigde cycli: 0</div>
+    
+    <div class="save-section">
+      <h2>Opslaan Accu gegevens</h2>
+      <label>Naam:
+        <input type="text" id="accu_name" placeholder="Bijv. Project X" oninput="checkAccuSaveButton();">
+      </label>
+      <label>Link:
+        <input type="text" id="accu_link" placeholder="http://voorbeeld.nl" oninput="checkAccuSaveButton();">
+      </label>
+      <button id="accu_save_btn" onclick="saveToSheet('accu'); this.style.display='none';" style="display:none;">Opslaan in Google Sheets</button>
+      <div class="result" id="accu_saveStatus"></div>
+      <button class="link-button" onclick="window.open('https://docs.google.com/spreadsheets/d/1lTWf32w6az_AAoL5sXPWo0gJ9cPzoIl-UBcs1ijUeSc/edit?usp=sharing', '_blank')">
+        Bekijk opgeslagen gegevens
+      </button>
+    </div>
+  </fieldset>
+  
+  <!-- ZONNEPANELEN REKENTOOL -->
+  <fieldset>
+    <legend>Zonnepanelen Rekentool</legend>
+    <label>
+      Prijs incl. btw (EUR):
+      <input type="number" id="zonne_price" step="0.01" min="0" oninput="calculateZonne(); checkZonneSaveButton();">
+    </label>
+    <label>
+      Btw (%):
+      <input type="number" id="zonne_vat" step="0.1" min="0" value="21" oninput="calculateZonne(); checkZonneSaveButton();">
+      <small>Geef 0 op als de site alleen de prijs exclusief btw vermeldt</small>
+    </label>
+    <label>
+      Aantal zonnepanelen:
+      <input type="number" id="zonne_count" step="1" min="1" value="1" oninput="calculateZonne();">
+    </label>
+    <label>
+      Wattpiek (Wp):
+      <input type="number" id="zonne_wattpiek" step="1" min="0" oninput="calculateZonne();">
+    </label>
+    <label>
+      Afmeting lengte (mm):
+      <input type="number" id="zonne_length" step="1" min="0" oninput="calculateZonne();">
+    </label>
+    <label>
+      Afmeting breedte (mm):
+      <input type="number" id="zonne_width" step="1" min="0" oninput="calculateZonne();">
+    </label>
+    
+    <!-- Resultaten Zonnepanelen -->
+    <div class="result" id="zonne_priceExVat">Prijs ex btw: €0,00</div>
+    <div class="result" id="zonne_vatAmount">Btw-bedrag: €0,00</div>
+    <div class="result" id="zonne_euroPerWp">Euro per Wp: €0,00</div>
+    <div class="result" id="zonne_WpPerM2">Wattpiek per m²: 0,00</div>
+    <div class="result" id="zonne_area">Oppervlakte: 0,00</div>
+    <div class="result" id="zonne_pricePerM2">Prijs per m²: €0,00</div>
+    
+    <div class="save-section">
+      <h2>Opslaan Zonnepanelen gegevens</h2>
+      <label>Naam:
+        <input type="text" id="zonne_name" placeholder="Bijv. Zonneproject" oninput="checkZonneSaveButton();">
+      </label>
+      <label>Link:
+        <input type="text" id="zonne_link" placeholder="http://voorbeeld.nl" oninput="checkZonneSaveButton();">
+      </label>
+      <button id="zonne_save_btn" onclick="saveToSheet('zonnepanelen'); this.style.display='none';" style="display:none;">Opslaan in Google Sheets</button>
+      <div class="result" id="zonne_saveStatus"></div>
+      <button class="link-button" onclick="window.open('https://docs.google.com/spreadsheets/d/1lTWf32w6az_AAoL5sXPWo0gJ9cPzoIl-UBcs1ijUeSc/edit?usp=sharing', '_blank')">
+        Bekijk opgeslagen gegevens
+      </button>
+    </div>
+  </fieldset>
+  
+  <script>
+    /* --- Controleer de zichtbaarheid van de opsla-knoppen --- */
+    function checkAccuSaveButton() {
+      const price = document.getElementById("accu_price").value.trim();
+      const name = document.getElementById("accu_name").value.trim();
+      const link = document.getElementById("accu_link").value.trim();
+      const btn = document.getElementById("accu_save_btn");
+      if(price !== "" && name !== "" && link !== ""){
+        btn.style.display = "block";
+      } else {
+        btn.style.display = "none";
+      }
+    }
+    
+    function checkZonneSaveButton() {
+      const price = document.getElementById("zonne_price").value.trim();
+      const name = document.getElementById("zonne_name").value.trim();
+      const link = document.getElementById("zonne_link").value.trim();
+      const btn = document.getElementById("zonne_save_btn");
+      if(price !== "" && name !== "" && link !== ""){
+        btn.style.display = "block";
+      } else {
+        btn.style.display = "none";
+      }
+    }
+    
+    /* ========================
+       Accu Calculator
+    ======================== */
+    let computedAccuTotalEnergy = 0,
+        computedAccuPricePerKwh = 0,
+        computedAccuTotalWeight = 0,
+        computedAccuPriceExVat = 0,
+        computedAccuVatAmount = 0,
+        computedAccuProfitPerCycle = 0,
+        computedAccuCyclesToBreakEven = 0;
+    
+    function calculateAccu() {
+      const price = parseFloat(document.getElementById('accu_price').value) || 0;
+      const vat = parseFloat(document.getElementById('accu_vat').value) || 21;
+      const count = parseFloat(document.getElementById('accu_count').value) || 0;
+      const voltage = parseFloat(document.getElementById('accu_voltage').value) || 0;
+      const capacity = parseFloat(document.getElementById('accu_capacity').value) || 0;
+      const energyKwhInput = parseFloat(document.getElementById('accu_energyKwh').value) || 0;
+      const weightInput = parseFloat(document.getElementById('accu_weight').value) || 0;
+      
+      const priceDiff = parseFloat(document.getElementById('accu_priceDiff').value) || 0;
+      const roundTrip = parseFloat(document.getElementById('accu_roundTrip').value) || 0;
+      
+      computedAccuPriceExVat = price / (1 + vat / 100);
+      computedAccuVatAmount = price - computedAccuPriceExVat;
+      
+      const energyPerBattery = (energyKwhInput > 0)
+        ? energyKwhInput
+        : (voltage * capacity) / 1000;
+      
+      computedAccuTotalEnergy = energyPerBattery * count;
+      
+      computedAccuPricePerKwh = (computedAccuTotalEnergy > 0) ? computedAccuPriceExVat / computedAccuTotalEnergy : 0;
+      computedAccuTotalWeight = (weightInput > 0) ? weightInput * count : 0;
+      
+      const rawProfit = computedAccuTotalEnergy * priceDiff * (roundTrip / 100);
+      computedAccuProfitPerCycle = Math.round(rawProfit * 100) / 100;
+      computedAccuCyclesToBreakEven = (computedAccuProfitPerCycle > 0) ? computedAccuPriceExVat / computedAccuProfitPerCycle : 0;
+      
+      document.getElementById('accu_totalEnergy').textContent =
+        `Totaal energie: ${computedAccuTotalEnergy.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })} kWh`;
+      document.getElementById('accu_result').textContent =
+        `Prijs per kWh: €${computedAccuPricePerKwh.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('accu_totalWeight').textContent =
+        `Totaal gewicht: ${computedAccuTotalWeight.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })} kg`;
+      document.getElementById('accu_priceExVat').textContent =
+        `Prijs ex btw: €${computedAccuPriceExVat.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('accu_vatAmount').textContent =
+        `Btw-bedrag: €${computedAccuVatAmount.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('accu_profitPerCycle').textContent =
+        `Verdient per cycle: €${computedAccuProfitPerCycle.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('accu_cyclesToBreakEven').textContent =
+        `Benodigde cycli: ${(!isNaN(computedAccuCyclesToBreakEven) && isFinite(computedAccuCyclesToBreakEven))
+          ? Math.ceil(computedAccuCyclesToBreakEven)
+          : 0}`;
+    }
+    
+    /* ========================
+       Zonnepanelen Rekentool
+    ======================== */
+    let computedZonnePriceExVat = 0,
+        computedZonneVatAmount = 0,
+        computedEuroPerWp = 0,
+        computedWpPerM2 = 0;
+    
+    function calculateZonne() {
+      const price = parseFloat(document.getElementById('zonne_price').value) || 0;
+      const vat = parseFloat(document.getElementById('zonne_vat').value) || 21;
+      const count = parseFloat(document.getElementById('zonne_count').value) || 0;
+      const wattpiek = parseFloat(document.getElementById('zonne_wattpiek').value) || 0;
+      const lengthVal = parseFloat(document.getElementById('zonne_length').value) || 0;
+      const widthVal = parseFloat(document.getElementById('zonne_width').value) || 0;
+      
+      computedZonnePriceExVat = price / (1 + vat / 100);
+      computedZonneVatAmount = price - computedZonnePriceExVat;
+      computedEuroPerWp = (wattpiek > 0) ? computedZonnePriceExVat / wattpiek : 0;
+      
+      const area = (lengthVal / 1000) * (widthVal / 1000);
+      computedWpPerM2 = (area > 0) ? wattpiek / area : 0;
+      
+      let pricePerM2 = (area > 0) ? computedZonnePriceExVat / area : 0;
+      
+      document.getElementById('zonne_priceExVat').textContent =
+        `Prijs ex btw: €${computedZonnePriceExVat.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_vatAmount').textContent =
+        `Btw-bedrag: €${computedZonneVatAmount.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_euroPerWp').textContent =
+        `Euro per Wp: €${computedEuroPerWp.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_WpPerM2').textContent =
+        `Wattpiek per m²: ${computedWpPerM2.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_area').textContent =
+        `Oppervlakte: ${area.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_pricePerM2').textContent =
+        `Prijs per m²: €${pricePerM2.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+    }
+    
+    /* ========================
+       Opslaan in Google Sheets
+    ======================== */
+    function saveToSheet(type) {
+      const scriptURL = "https://script.google.com/macros/s/AKfycbyY78NwbXa4_wvhvfwXpVOwFXBB4fRaVoL7Htf0ZX-vBmkHjzWs9pgExS8Y47fvFw2LoA/exec";
+      
+      let data = {};
+      let saveStatusId = "";
+      
+      if (type === "accu") {
+        saveStatusId = "accu_saveStatus";
+        data.type = "accu";
+        data.naam = document.getElementById('accu_name').value;
+        data.link = document.getElementById('accu_link').value;
+        data.prijsInclBtw = parseFloat(document.getElementById('accu_price').value) || 0;
+        data.btwPercentage = parseFloat(document.getElementById('accu_vat').value) || 21;
+        data.aantalAccus = parseFloat(document.getElementById('accu_count').value) || 0;
+        data.spanning = parseFloat(document.getElementById('accu_voltage').value) || 0;
+        data.capaciteit = parseFloat(document.getElementById('accu_capacity').value) || 0;
+        data.energiePerAccuInput = parseFloat(document.getElementById('accu_energyKwh').value) || 0;
+        data.gewichtPerAccu = parseFloat(document.getElementById('accu_weight').value) || 0;
+        data.prijsVerschil = parseFloat(document.getElementById('accu_priceDiff').value) || 0;
+        data.roundTripEfficiency = parseFloat(document.getElementById('accu_roundTrip').value) || 0;
+        data.totaalEnergie = document.getElementById('accu_totalEnergy').textContent.replace("Totaal energie: ", "");
+        data.prijsPerKwh = document.getElementById('accu_result').textContent.replace("Prijs per kWh: €", "€");
+        data.totaalGewicht = document.getElementById('accu_totalWeight').textContent.replace("Totaal gewicht: ", "");
+        data.prijsExBtw = document.getElementById('accu_priceExVat').textContent.replace("Prijs ex btw: €", "€");
+        data.btwBedrag = document.getElementById('accu_vatAmount').textContent.replace("Btw-bedrag: €", "€");
+        data.verdientPerCycle = document.getElementById('accu_profitPerCycle').textContent.replace("Verdient per cycle: €", "€");
+        data.benodigdeCycli = document.getElementById('accu_cyclesToBreakEven').textContent.replace("Benodigde cycli: ", "");
+      } else if (type === "zonnepanelen") {
+        saveStatusId = "zonne_saveStatus";
+        data.type = "zonnepanelen";
+        data.naam = document.getElementById('zonne_name').value;
+        data.link = document.getElementById('zonne_link').value;
+        data.prijsInclBtw = parseFloat(document.getElementById('zonne_price').value) || 0;
+        data.btwPercentage = parseFloat(document.getElementById('zonne_vat').value) || 21;
+        data.aantal = parseFloat(document.getElementById('zonne_count').value) || 0;
+        data.wattpiek = parseFloat(document.getElementById('zonne_wattpiek').value) || 0;
+        data.lengte_mm = parseFloat(document.getElementById('zonne_length').value) || 0;
+        data.breedte_mm = parseFloat(document.getElementById('zonne_width').value) || 0;
+        data.prijsExBtw = document.getElementById('zonne_priceExVat').textContent.replace("Prijs ex btw: €", "€");
+        data.btwBedrag = document.getElementById('zonne_vatAmount').textContent.replace("Btw-bedrag: €", "€");
+        data.euroPerWp = document.getElementById('zonne_euroPerWp').textContent.replace("Euro per Wp: €", "€");
+        data.wattpiekPerM2 = document.getElementById('zonne_WpPerM2').textContent
+          .replace("Wattpiek per m²: ", "").replace(" Wp/m²", "").trim();
+        data.oppervlakte = document.getElementById('zonne_area').textContent
+          .replace("Oppervlakte: ", "").replace(" m²", "").trim();
+        data.prijsPerM2 = document.getElementById('zonne_pricePerM2').textContent
+          .replace("Prijs per m²: €", "").replace("€", "").trim();
+      }
+      
+      data.timestamp = new Date().toISOString();
+      
+      document.getElementById(saveStatusId).textContent = "Opslaan...";
+      
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(() => {
+        document.getElementById(saveStatusId).textContent = "Gegevens opgeslagen!";
+      })
+      .catch(error => {
+        console.error('Error!', error.message);
+        document.getElementById(saveStatusId).textContent = "Opslaan mislukt.";
+      });
+    }
+    
+    // Controleer de zichtbaarheid van de opsla-knoppen
+    function checkAccuSaveButton() {
+      const price = document.getElementById("accu_price").value.trim();
+      const name = document.getElementById("accu_name").value.trim();
+      const link = document.getElementById("accu_link").value.trim();
+      const btn = document.getElementById("accu_save_btn");
+      if(price !== "" && name !== "" && link !== ""){
+        btn.style.display = "block";
+      } else {
+        btn.style.display = "none";
+      }
+    }
+    
+    function checkZonneSaveButton() {
+      const price = document.getElementById("zonne_price").value.trim();
+      const name = document.getElementById("zonne_name").value.trim();
+      const link = document.getElementById("zonne_link").value.trim();
+      const btn = document.getElementById("zonne_save_btn");
+      if(price !== "" && name !== "" && link !== ""){
+        btn.style.display = "block";
+      } else {
+        btn.style.display = "none";
+      }
+    }
+    
+    // Voeg event listeners toe aan de relevante velden voor accu
+    document.getElementById("accu_price").addEventListener("input", checkAccuSaveButton);
+    document.getElementById("accu_name").addEventListener("input", checkAccuSaveButton);
+    document.getElementById("accu_link").addEventListener("input", checkAccuSaveButton);
+    
+    // Voeg event listeners toe aan de relevante velden voor zonnepanelen
+    document.getElementById("zonne_price").addEventListener("input", checkZonneSaveButton);
+    document.getElementById("zonne_name").addEventListener("input", checkZonneSaveButton);
+    document.getElementById("zonne_link").addEventListener("input", checkZonneSaveButton);
+    
+  </script>
+</body>
+</html>
