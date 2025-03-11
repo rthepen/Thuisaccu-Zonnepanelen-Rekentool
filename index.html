@@ -327,7 +327,8 @@
       
       computedZonnePriceExVat = price / (1 + vat / 100);
       computedZonneVatAmount = price - computedZonnePriceExVat;
-      computedEuroPerWp = (wattpiek > 0) ? computedZonnePriceExVat / wattpiek : 0;
+      // Bereken euro per Wp op basis van totaal wattpiek (wattpiek * aantal)
+      computedEuroPerWp = (wattpiek > 0 && count > 0) ? computedZonnePriceExVat / (wattpiek * count) : 0;
       
       const area = (lengthVal / 1000) * (widthVal / 1000);
       computedWpPerM2 = (area > 0) ? wattpiek / area : 0;
@@ -348,9 +349,9 @@
       document.getElementById('zonne_euroPerWp').textContent =
         `Euro per Wp: €${computedEuroPerWp.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
       document.getElementById('zonne_WpPerM2').textContent =
-        `Wattpiek per m²: ${computedWpPerM2.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+        `Wattpiek per m²: ${computedWpPerM2.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })} Wp/m²`;
       document.getElementById('zonne_area').textContent =
-        `Oppervlakte: ${area.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+        `Oppervlakte: ${area.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })} m²`;
       document.getElementById('zonne_pricePerM2').textContent =
         `Prijs per m²: €${pricePerM2.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
       document.getElementById('zonne_pricePerPanel').textContent =
@@ -376,7 +377,8 @@
         data.naam = document.getElementById('accu_name').value;
         data.link = document.getElementById('accu_link').value;
         data.prijsInclBtw = parseFloat(document.getElementById('accu_price').value) || 0;
-        data.btwPercentage = parseFloat(document.getElementById('accu_vat').value) || 21;
+        data.btwPercentage = isNaN(parseFloat(document.getElementById('accu_vat').value)) 
+                             ? 21 : parseFloat(document.getElementById('accu_vat').value);
         data.aantalAccus = parseFloat(document.getElementById('accu_count').value) || 0;
         data.spanning = parseFloat(document.getElementById('accu_voltage').value) || 0;
         data.capaciteit = parseFloat(document.getElementById('accu_capacity').value) || 0;
@@ -397,7 +399,8 @@
         data.naam = document.getElementById('zonne_name').value;
         data.link = document.getElementById('zonne_link').value;
         data.prijsInclBtw = parseFloat(document.getElementById('zonne_price').value) || 0;
-        data.btwPercentage = parseFloat(document.getElementById('zonne_vat').value) || 21;
+        data.btwPercentage = isNaN(parseFloat(document.getElementById('zonne_vat').value)) 
+                             ? 21 : parseFloat(document.getElementById('zonne_vat').value);
         data.aantal = parseFloat(document.getElementById('zonne_count').value) || 0;
         data.wattpiek = parseFloat(document.getElementById('zonne_wattpiek').value) || 0;
         data.lengte_mm = parseFloat(document.getElementById('zonne_length').value) || 0;
