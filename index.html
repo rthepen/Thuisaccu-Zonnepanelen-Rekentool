@@ -42,7 +42,7 @@
       margin-top: 15px;
       font-size: 16px;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
@@ -192,6 +192,13 @@
       Afmeting breedte (mm):
       <input type="number" id="zonne_width" step="1" min="0" oninput="calculateZonne();">
     </label>
+    <label>
+      Glas-glas bi-facial:
+      <select id="zonne_bifacial" oninput="checkZonneSaveButton();">
+        <option value="nee" selected>Nee</option>
+        <option value="ja">Ja</option>
+      </select>
+    </label>
     
     <!-- Resultaten Zonnepanelen -->
     <div class="result" id="zonne_priceExVat">Prijs ex btw: €0,00</div>
@@ -200,6 +207,9 @@
     <div class="result" id="zonne_WpPerM2">Wattpiek per m²: 0,00</div>
     <div class="result" id="zonne_area">Oppervlakte: 0,00</div>
     <div class="result" id="zonne_pricePerM2">Prijs per m²: €0,00</div>
+    <div class="result" id="zonne_pricePerPanel">Prijs per paneel ex btw: €0,00</div>
+    <div class="result" id="zonne_totalWp">Totaal Wp: 0,00</div>
+    <div class="result" id="zonne_efficiency">Efficiëntie: 0,00%</div>
     
     <div class="save-section">
       <h2>Opslaan Zonnepanelen gegevens</h2>
@@ -218,7 +228,7 @@
   </fieldset>
   
   <script>
-    // Controleer de zichtbaarheid van de save-knoppen voor accu en zonnepanelen
+    // Controleer de zichtbaarheid van de save-knoppen
     function checkAccuSaveButton() {
       const price = document.getElementById("accu_price").value.trim();
       const name = document.getElementById("accu_name").value.trim();
@@ -271,7 +281,6 @@
       computedAccuVatAmount = price - computedAccuPriceExVat;
       
       const energyPerBattery = (energyKwhInput > 0) ? energyKwhInput : (voltage * capacity) / 1000;
-      
       computedAccuTotalEnergy = energyPerBattery * count;
       
       computedAccuPricePerKwh = (computedAccuTotalEnergy > 0) ? computedAccuPriceExVat / computedAccuTotalEnergy : 0;
@@ -324,6 +333,10 @@
       computedWpPerM2 = (area > 0) ? wattpiek / area : 0;
       
       let pricePerM2 = (area > 0) ? computedZonnePriceExVat / area : 0;
+      let pricePerPanel = (count > 0) ? computedZonnePriceExVat / count : 0;
+      let totalWp = wattpiek * count;
+      // Efficiëntie: als de standaard zoninstraling 1000 W/m² is, is de efficiëntie (W/m²)/10.
+      let efficiency = (computedWpPerM2 > 0) ? computedWpPerM2 / 10 : 0;
       
       document.getElementById('zonne_priceExVat').textContent =
         `Prijs ex btw: €${computedZonnePriceExVat.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
@@ -337,13 +350,19 @@
         `Oppervlakte: ${area.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
       document.getElementById('zonne_pricePerM2').textContent =
         `Prijs per m²: €${pricePerM2.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_pricePerPanel').textContent =
+        `Prijs per paneel ex btw: €${pricePerPanel.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_totalWp').textContent =
+        `Totaal Wp: ${totalWp.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('zonne_efficiency').textContent =
+        `Efficiëntie: ${efficiency.toLocaleString('nl-NL', { minimumFractionDigits:2, maximumFractionDigits:2 })}%`;
     }
     
     /* ========================
        Opslaan in Google Sheets
     ======================== */
     function saveToSheet(type) {
-      const scriptURL = "https://script.google.com/macros/s/AKfycbyY78NwbXa4_wvhvfwXpVOwFXBB4fRaVoL7Htf0ZX-vBmkHjzWs9pgExS8Y47fvFw2LoA/exec";
+      const scriptURL = "https://script.google.com/macros/s/AKfycbzher9v21hllvjPcg-FEXZFdr0fhGRrDGaRdVkup5oRTxUd1nSefLMIciLCjCnahy5vDA/exec";
       
       let data = {};
       let saveStatusId = "";
@@ -389,6 +408,13 @@
           .replace("Oppervlakte: ", "").replace(" m²", "").trim();
         data.prijsPerM2 = document.getElementById('zonne_pricePerM2').textContent
           .replace("Prijs per m²: €", "").replace("€", "").trim();
+        data.prijsPerPanel = document.getElementById('zonne_pricePerPanel').textContent
+          .replace("Prijs per paneel ex btw: €", "").replace("€", "").trim();
+        data.totalWp = document.getElementById('zonne_totalWp').textContent
+          .replace("Totaal Wp: ", "").trim();
+        data.efficiency = document.getElementById('zonne_efficiency').textContent
+          .replace("Efficiëntie: ", "").replace("%", "").trim();
+        data.bifacial = document.getElementById('zonne_bifacial').value;
       }
       
       data.timestamp = new Date().toISOString();
