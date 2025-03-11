@@ -102,7 +102,7 @@
   <fieldset>
     <legend>Accu Calculator</legend>
     <label>
-      Prijs incl. btw (EUR):
+      Totaalprijs (EUR):
       <input type="number" id="accu_price" step="0.01" min="0" oninput="calculateAccu(); checkAccuSaveButton();">
     </label>
     <label>
@@ -168,7 +168,7 @@
   <fieldset>
     <legend>Zonnepanelen Rekentool</legend>
     <label>
-      Prijs incl. btw (EUR):
+      Totaalprijs (EUR):
       <input type="number" id="zonne_price" step="0.01" min="0" oninput="calculateZonne(); checkZonneSaveButton();">
     </label>
     <label>
@@ -332,10 +332,13 @@
       const area = (lengthVal / 1000) * (widthVal / 1000);
       computedWpPerM2 = (area > 0) ? wattpiek / area : 0;
       
-      let pricePerM2 = (area > 0) ? computedZonnePriceExVat / area : 0;
+      // Prijs per m² houdt nu rekening met het aantal panelen: totaalprijs ex btw gedeeld door (oppervlakte * aantal)
+      let pricePerM2 = (area > 0 && count > 0) ? computedZonnePriceExVat / (area * count) : 0;
+      // Prijs per paneel ex btw: totaalprijs ex btw gedeeld door aantal
       let pricePerPanel = (count > 0) ? computedZonnePriceExVat / count : 0;
+      // Totaal Wp: wattpiek per paneel * aantal
       let totalWp = wattpiek * count;
-      // Efficiëntie: als de standaard zoninstraling 1000 W/m² is, is de efficiëntie (W/m²)/10.
+      // Efficiëntie: (Wattpiek per m²) / 10
       let efficiency = (computedWpPerM2 > 0) ? computedWpPerM2 / 10 : 0;
       
       document.getElementById('zonne_priceExVat').textContent =
